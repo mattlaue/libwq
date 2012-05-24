@@ -1,0 +1,8 @@
+The current supported way of building libwq.a for __WIN32 is to use
+mingw-cross-env on linux from: http://mingw-cross-env.nongnu.org.
+
+After installing as per: http://mingw-cross-env.nongnu.org/#tutorial
+
+# export PATH=/opt/mingw/usr/bin:$PATH
+# ./configure --host=i686-pc-mingw32 --enable-static --disable-shared
+# make

@@ -1,0 +1,56 @@
+.TH wq 7 "February 2012" "version 1.0"
+.SH NAME
+workqueue \- an asynchronous job processing library for C/C++.
+.SH SYNOPSIS
+.B #include <wq.h>
+.sp
+Compile and link with \fI\-lwq\fP.
+.SH DESCRIPTION
+The workqueue (wq) library allows general functions to be scheduled in an asynchronous fashion.  Workqueues are created at runtime with a particular 'backend' that specifies how the jobs are to be run, thus freeing the user from the complexities of a particular method (e.g. zombie processes or pthread syncronization)   The library includes both process and thread backends, by default.
+.PP
+Jobs are added to a workqueue by submitting a function pointer and a data pointer.  Care must be taken with the data pointer so that it is guaranteed to be accessible - especially if using the "process" backend.
+
+.SH EXAMPLES
+.nf#include <stdio.h>
+#include <assert.h>
+#include <wq.h>
+
+static void
+hello(int id, void *unused) 
+{
+    printf("%04d Hello World!\n", id);
+}
+
+
+int
+main(int argc, char **argv)
+{
+    int rc;
+    workqueue_t wq;
+
+    rc = workqueue_init(&wq, "process");
+    assert(rc == 0);
+
+    rc = workqueue_submit(&wq, hello, NULL);
+    assert(rc == 0);
+
+    workqueue_lock(&wq);
+    while (!workqueue_idle(&wq)) {
+        workqueue_wait(&wq, 0);
+    }
+    workqueue_unlock(&wq);
+
+    workqueue_destroy(&wq);
+    return 0;
+}
+
+.fi
+.in
+.PP
+The backend for the above program could be changed to a thread model by replacing the string "process" with "thread" as the second parameter to workqueue_init.
+
+.SH SEE ALSO
+.PP The detailed API documentation is available at:
+
+.B http://www.akirisolutions.com/opensource/workqueue.html.
+The API is documented using Doxygen and is also included with the source package.
