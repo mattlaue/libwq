@@ -1,7 +1,7 @@
 #noinst_LTLIBRARIES = libwq.la
 lib_LTLIBRARIES = libwq.la
 
-library_includedir=.
+library_includedir=$(includedir)
 library_include_HEADERS = wq.h
 
 if MINGW
