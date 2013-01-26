@@ -25,16 +25,17 @@
 #include <unistd.h>
 #include <wq.h>
 
-static __thread int id;
-
 typedef struct workqueue_thread_private {
     pthread_mutex_t mutex;
     pthread_cond_t work_cond;
     pthread_cond_t completion_cond;
     pthread_cond_t shutdown_cond;
+    pthread_key_t key;
     workqueue_stat_t st;
     int n;
 } workqueue_thread_private_t;
+
+extern int wq_gettime(struct timespec *tp);
 
 static bool
 _workqueue_thread_locked(workqueue_thread_private_t *private)
@@ -55,6 +56,7 @@ static int
 workqueue_thread_init(workqueue_t *wq)
 {
     workqueue_thread_private_t *private;
+    int rc;
 
     private = malloc(sizeof(workqueue_thread_private_t));
     if (private == NULL) {
@@ -68,6 +70,12 @@ workqueue_thread_init(workqueue_t *wq)
     pthread_cond_init(&private->completion_cond, NULL);
     pthread_cond_init(&private->shutdown_cond, NULL);
 
+    rc = pthread_key_create(&private->key, NULL);
+    if (rc < 0) {
+        free(private);
+        return -1;
+    }
+
     wq->private = private;
     return 0;
 }
@@ -76,6 +84,8 @@ static void
 workqueue_thread_destroy(workqueue_t *wq)
 {
     if (wq->private) {
+        workqueue_thread_private_t *private = wq->private;
+        pthread_key_delete(private->key);
         free(wq->private);
     }
 }
@@ -127,7 +137,7 @@ _workqueue_thread_cond_wait(pthread_cond_t *cond,
 
     if (timeout) {
         struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
+        wq_gettime(&ts);
         ts.tv_sec += timeout;
         rc = pthread_cond_timedwait(cond, mutex, &ts);
         if (rc == ETIMEDOUT) {
@@ -190,9 +200,12 @@ static void
 workqueue_thread_worker_start(struct workqueue *wq)
 {
     workqueue_thread_private_t *private = wq->private;
+    unsigned long id;
+
     assert(_workqueue_thread_locked(private));
     private->st.available++;
     id = ++private->n;
+    pthread_setspecific(private->key, (void *)id);
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 }
 
@@ -242,7 +255,9 @@ workqueue_thread_worker_complete(struct workqueue *wq)
 static int
 workqueue_thread_self(workqueue_t *wq)
 {
-    return id;
+    workqueue_thread_private_t *private = wq->private;
+    unsigned long id = (unsigned long)pthread_getspecific(private->key);
+    return (int)id;
 }
 
 workqueue_backend_t

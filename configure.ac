@@ -11,9 +11,14 @@ AC_CACHE_VAL(lt_cv_deplibs_check_method,
     [lt_cv_deplibs_check_method=pass_all])
 
 MINGW32=no
+DARWIN=no
+
 case "${host_os}" in
   *mingw32* )
     MINGW32=yes
+    ;;
+  darwin* )
+    DARWIN=yes    
     ;;
 esac
 AM_CONDITIONAL(MINGW, [test "x$MINGW32" = "xyes"])
@@ -23,11 +28,13 @@ AC_CHECK_LIB([pthread], [pthread_create],,
 
 
 dnl check libraries
-if test "x$MINGW32" != "xyes"; then
-    AC_CHECK_LIB([rt], [clock_gettime],,
-         AC_MSG_ERROR([*** Please install librt on your system ***]))
-else
+if test "x$MINGW32" = "xyes"; then
     AC_LIBTOOL_WIN32_DLL
+else
+    if test "x$DARWIN" != "xyes"; then
+        AC_CHECK_LIB([rt], [clock_gettime],,
+                AC_MSG_ERROR([*** Please install librt on your system ***]))
+    fi
 fi
 
 AM_CONDITIONAL(WQ_ENABLE_DOC, false)

@@ -41,6 +41,8 @@ typedef struct workqueue_process_private {
     workqueue_stat_t st;
 } workqueue_process_private_t;
 
+extern int wq_gettime(struct timespec *tp);
+
 static void
 _workqueue_process_sigchild(int sig, siginfo_t *si, void *unused)
 {
@@ -177,7 +179,7 @@ _workqueue_process_cond_wait(pthread_cond_t *cond,
 
     if (timeout) {
         struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
+        wq_gettime(&ts);
         ts.tv_sec += timeout;
         rc = pthread_cond_timedwait(cond, mutex, &ts);
         if (rc == ETIMEDOUT) {

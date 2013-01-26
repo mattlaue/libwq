@@ -9,7 +9,7 @@ AM_CPPFLAGS = -Wall -Werror -DPTW32_STATIC_LIB
 libwq_la_SOURCES = wq.c thread-win32.c
 else
 AM_CPPFLAGS = -Wall -Werror
-libwq_la_SOURCES = wq.c thread.c process.c
+libwq_la_SOURCES = wq.c time.c thread.c process.c
 endif
 
 
