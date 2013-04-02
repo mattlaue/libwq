@@ -1,6 +1,14 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
+if WQ_ENABLE_DEBUG
+AM_CFLAGS = -g3 -O0 -Wall -Werror
+AM_CXXFLAGS = -g3 -O0 -Wall -Werror
+else
+AM_CFLAGS = -O2
+AM_CXXFLAGS = -O2
+endif
+
 if WQ_ENABLE_DOC
 DOC_DIR = doc
 else
