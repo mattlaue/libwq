@@ -1,6 +1,8 @@
 /INSTALL
 Makefile
 Makefile.in
+tags
+TAGS
 /m4
 /aclocal.m4
 /autom4te.cache/
