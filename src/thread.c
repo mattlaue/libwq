@@ -191,6 +191,7 @@ workqueue_thread_worker_create(struct workqueue *wq, void *(*func)(void *))
     sigprocmask(SIG_SETMASK, &oldset, NULL);
 
     if (rc == 0) {
+        pthread_detach(t);
         private->st.current++;
     }
     return rc;

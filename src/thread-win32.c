@@ -180,6 +180,7 @@ workqueue_thread_worker_create(struct workqueue *wq, void *(*func)(void *))
 
     rc = pthread_create(&t, NULL, func, wq);
     if (rc == 0) {
+        pthread_detach(t);
         private->st.current++;
     }
     return rc;
