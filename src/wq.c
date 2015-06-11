@@ -301,8 +301,12 @@ workqueue_getitem(workqueue_t *wq, work_item_t *item)
         /* This read is atomic as long as sizeof(work_item_t) <= PIPE_BUF */
         rc = read_pipe(wq->pipefds[WORKQUEUE_READ_PIPE],
                        item, sizeof(work_item_t));
+        if (rc == 0) {
+            WTRACE(wq, "exiting.\n");
+            return -1;
+        }
         if (rc < 0 && errno != EWOULDBLOCK) {
-            WERROR("read_pipe() failed: %s\n", strerror(errno));
+            WERROR("read_pipe() failed: %s (%d)\n", strerror(errno), errno);
             return errno;
         }
         if (rc == sizeof(work_item_t)) {

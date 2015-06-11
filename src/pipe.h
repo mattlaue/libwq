@@ -53,7 +53,11 @@ read_pipe(PIPE p, void *buf, size_t count)
         }
         return (ssize_t)n;
     }
+
     errno = GetLastError();
+    if (errno == ERROR_NO_DATA) {
+        return 0;
+    }
     return -1;
 #else
     return read(p, buf, count);
